@@ -2,19 +2,21 @@
 //  ViewController.swift
 //  Flash Chat
 //
-//  Created by Angela Yu on 29/08/2015.
+//  Created by Devodriq Roberts on 7/13/2018.
 //  Copyright (c) 2015 London App Brewery. All rights reserved.
 //
 
 import UIKit
 import Firebase
+import SVProgressHUD
+import ChameleonFramework
 
 
 class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     // Declare instance variables here
     var messageArray = [Message]()
-
+    
     
     // We've pre-linked the IBOutlets
     @IBOutlet var heightConstraint: NSLayoutConstraint!
@@ -35,22 +37,24 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         //TODO: Set yourself as the delegate of the text field here:
         messageTextfield.delegate = self
-
+        
         
         
         //TODO: Set the tapGesture here:
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tableViewTapped))
         messageTableView.addGestureRecognizer(tapGesture)
-
+        
         //TODO: Register your MessageCell.xib file here:
         messageTableView.register(UINib(nibName: "MessageCell", bundle: nil), forCellReuseIdentifier: "customMessageCell")
         
         configureTableView()
         retrieveMessages()
-
+        
+        messageTableView.separatorStyle = .none
+        
         
     }
-
+    
     ///////////////////////////////////////////
     
     //MARK: - TableView DataSource Methods
@@ -62,8 +66,20 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "customMessageCell", for: indexPath) as! CustomMessageCell
         
-        let messageArray = ["First Message", "Seacond Message", "Third Message"]
-        cell.messageBody.text = messageArray[indexPath.row]
+        cell.messageBody.text = messageArray[indexPath.row].messageBody
+        cell.senderUsername.text = messageArray[indexPath.row].sender
+        cell.avatarImageView.image = UIImage(named: "egg")
+        
+        if cell.senderUsername.text == Auth.auth().currentUser?.email as String? {
+            
+            cell.avatarImageView.backgroundColor = UIColor.flatSkyBlue()
+            cell.messageBackground.backgroundColor = UIColor.flatGray()
+            
+        } else {
+            
+            cell.avatarImageView.backgroundColor = UIColor.flatWhite()
+            cell.messageBackground.backgroundColor = UIColor.flatLime()
+        }
         
         return cell
     }
@@ -71,7 +87,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     //TODO: Declare numberOfRowsInSection here:
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return messageArray.count
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -96,7 +112,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     //MARK:- TextField Delegate Methods
     
     
-
+    
     
     //TODO: Declare textFieldDidBeginEditing here:
     func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -116,7 +132,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
             self.view.layoutIfNeeded()
         }
     }
-
+    
     
     ///////////////////////////////////////////
     
@@ -143,7 +159,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
             (error, reference) in
             
             if error != nil {
-                print(error)
+                print(error as Any)
             } else {
                 print("Message saved Successfully!")
                 
@@ -170,11 +186,13 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
             newMessage.sender = sender
             
             self.messageArray.append(newMessage)
+            self.configureTableView()
+            self.messageTableView.reloadData()
         }
     }
     
     
-
+    
     
     
     
@@ -183,7 +201,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         //TODO: Log out the user and send them back to WelcomeViewController
         do {
             
-        try Auth.auth().signOut()
+            try Auth.auth().signOut()
             
             navigationController?.popToRootViewController(animated: true)
             
@@ -194,6 +212,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
     }
     
-
+    
 
 }
